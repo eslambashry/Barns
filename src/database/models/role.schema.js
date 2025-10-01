@@ -1,5 +1,4 @@
-const mongoose = require('mongoose');
-const { Schema } = mongoose;
+import { Schema, model } from "mongoose";
 
 const roleSchema = new Schema({
     name: {
@@ -13,7 +12,7 @@ const roleSchema = new Schema({
             'treatment_supervisor',
             'lab_supervisor',
             'horse_health_supervisor',
-            'team_member' // دور عام لأعضاء الفريق إذا احتجت
+            'team_member' 
         ]
     },
     description: {
@@ -22,5 +21,4 @@ const roleSchema = new Schema({
     }
 }, { timestamps: true });
 
-const Role = mongoose.model('Role', roleSchema);
-module.exports = Role;
+export const Role = model('Role', roleSchema);

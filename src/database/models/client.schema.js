@@ -1,7 +1,5 @@
-const mongoose = require('mongoose');
-const { Schema } = mongoose;
+import { Schema, model } from "mongoose";
 
-// مخطط فرعي لمواقع العميل (القرى)
 const villageSchema = new Schema({
     name: {
         type: String,
@@ -20,7 +18,6 @@ const clientSchema = new Schema({
         type: String,
         required: true
     },
-    // لا يوجد ID منفصل حسب طلبك، MongoDB يوفر _id تلقائياً
     birth_date: {
         type: Date
     },
@@ -49,5 +46,4 @@ const clientSchema = new Schema({
     }
 }, { timestamps: true });
 
-const Client = mongoose.model('Client', clientSchema);
-module.exports = Client;
+export const Client = model('Client', clientSchema);

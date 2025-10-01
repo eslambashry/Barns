@@ -1,5 +1,4 @@
-const mongoose = require('mongoose');
-const { Schema } = mongoose;
+import { Schema, model } from "mongoose";
 
 const teamSchema = new Schema({
     supervisor: {
@@ -18,5 +17,5 @@ const teamSchema = new Schema({
     }
 }, { timestamps: true });
 
-const Team = mongoose.model('Team', teamSchema);
-module.exports = Team;
+export const Team = model('Team', teamSchema);
+

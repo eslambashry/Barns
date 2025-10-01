@@ -1,5 +1,4 @@
-const mongoose = require('mongoose');
-const { Schema } = mongoose;
+import { Schema, model } from "mongoose";
 
 // مخطط فرعي لمعلومات القطيع
 const herdInfoSchema = new Schema({
@@ -27,7 +26,6 @@ const herdInfoSchema = new Schema({
     total_treated: { type: Number, default: 0 },
 }, { _id: false });
 
-// مخطط فرعي لحالة الحظائر
 const animalBarnsSchema = new Schema({
     is_treated: { type: Boolean, default: false },
     area_sqm: { type: Number },
@@ -36,7 +34,7 @@ const animalBarnsSchema = new Schema({
 }, { _id: false });
 
 const reportSchema = new Schema({
-    serial_no: { // رقم تسلسلي للتقرير
+    serial_no: { 
         type: String,
         unique: true,
         required: true
@@ -46,7 +44,7 @@ const reportSchema = new Schema({
         ref: 'ServiceRequest',
         required: true
     },
-    team: { // الفريق الذي قام بالعمل
+    team: { 
         type: Schema.Types.ObjectId,
         ref: 'Team',
         required: true
@@ -55,10 +53,8 @@ const reportSchema = new Schema({
         type: Date,
         required: true
     },
-    // --- الأقسام المدمجة ---
     herd_information: herdInfoSchema,
     
-    // حقول عامة لكل التقارير
     breeding_status: { type: String },
     herd_health_status: { type: String }, // e.g., 'Healthy'
     complying_to_instructions: { type: Boolean },
@@ -66,13 +62,12 @@ const reportSchema = new Schema({
     labours_availability: { type: String }, // e.g., 'Available'
     location_reachability: { type: String }, // e.g., 'Easy'
 
-    // حقول متغيرة حسب نوع التقرير
     report_details: {
-        type: Schema.Types.Mixed, // يسمح بتخزين أي نوع من البيانات (JSON)
+        type: Schema.Types.Mixed, 
         required: true
     },
     
-    notes: { // ملاحظات عامة
+    notes: { 
         type: String
     }
 }, { timestamps: true });
@@ -103,5 +98,4 @@ const reportSchema = new Schema({
 }
 */
 
-const Report = mongoose.model('Report', reportSchema);
-module.exports = Report;
+export const Report = model('Report', reportSchema);

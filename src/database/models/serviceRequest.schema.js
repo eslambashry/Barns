@@ -1,5 +1,4 @@
-const mongoose = require('mongoose');
-const { Schema } = mongoose;
+import { Schema, model } from "mongoose";
 
 const serviceRequestSchema = new Schema({
     client: {
@@ -7,7 +6,7 @@ const serviceRequestSchema = new Schema({
         ref: 'Client',
         required: true
     },
-    village: { // سيتم تخزين ObjectId الخاص بالقرية المدمجة
+    village: { 
         type: Schema.Types.ObjectId,
         required: true
     },
@@ -26,7 +25,6 @@ const serviceRequestSchema = new Schema({
     category: {
         type: String,
         required: true,
-        // أمثلة من بياناتك
         enum: ['Parasite Control', 'Vaccination', 'm clinic treatment', 'Lab Test', 'Horse Health Check']
     },
     remarks: { // ملاحظات
@@ -34,5 +32,4 @@ const serviceRequestSchema = new Schema({
     }
 }, { timestamps: true });
 
-const ServiceRequest = mongoose.model('ServiceRequest', serviceRequestSchema);
-module.exports = ServiceRequest;
+export const ServiceRequest = model('ServiceRequest', serviceRequestSchema);
