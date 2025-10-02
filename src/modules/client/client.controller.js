@@ -3,9 +3,9 @@ import { asyncHandler } from "../../utilities/errorHandeling.js";
 
 // إضافة مربي جديد
 export const addClient = asyncHandler(async (req, res, next) => {
-    const { name, national_id, birth_date, phone, email, village, detailed_address, status, animals, available_services } = req.body;
-console.log(req.body);
+    const { name, national_id, birth_date, phone, email, village, longitude, latitude, detailed_address, status, animals, available_services } = req.body;
 
+    // التحقق من عدم وجود نفس الهوية مسبقاً
     const existingClient = await Client.findOne({ national_id });
     if (existingClient) {
         return res.status(400).json({
@@ -22,25 +22,26 @@ console.log(req.body);
         phone,
         email,
         village,
+        longitude,
+        latitude,
         detailed_address,
         status: status || 'نشط',
         animals: animals || [],
         available_services: available_services || ['Parasite Control', 'Vaccination', 'Treatment & Monitoring', 'Lab Test', 'Horse Health']
     });
-    console.log(newClient);
-    
 
     res.status(201).json({
         success: true,
         message: 'تم إضافة المربي بنجاح',
-        data: newClient
+        data: newClient,
+        created_at: newClient.createdAt
     });
 });
 
 // إضافة حيوان جديد للمربي
 export const addAnimalToClient = asyncHandler(async (req, res, next) => {
     const { clientId } = req.params;
-    const { animal_type, breed, age, gender, health_status, identification_number } = req.body;
+    const { animal_type, breed, age, animal_count, gender, health_status, identification_number } = req.body;
 
     const client = await Client.findById(clientId);
     if (!client) {
@@ -54,6 +55,7 @@ export const addAnimalToClient = asyncHandler(async (req, res, next) => {
         animal_type,
         breed,
         age,
+        animal_count: animal_count || 1,
         gender,
         health_status: health_status || 'سليم',
         identification_number
@@ -397,3 +399,6 @@ export const getClientsStats = asyncHandler(async (req, res, next) => {
         }
     });
 });
+
+
+ 
