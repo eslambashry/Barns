@@ -1,3 +1,10 @@
+// Async Handler - للتعامل مع الأخطاء في الدوال غير المتزامنة
+export const asyncHandler = (fn) => {
+    return (req, res, next) => {
+        Promise.resolve(fn(req, res, next)).catch(next);
+    };
+};
+
 export const globalResponse = (err,req,res,next) => {
     if(err){
         if(req.validationErrorArr){

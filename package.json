@@ -2,14 +2,23 @@
   "name": "barns",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start":"nodemon index.js"
+    "start": "nodemon index.js",
+    "dev": "nodemon index.js",
+    "seed": "node src/utilities/seeder.js"
   },
-  "keywords": [],
-  "types": "module",
-  "author": "",
+  "keywords": [
+    "veterinary",
+    "livestock",
+    "management",
+    "barns",
+    "animal-health"
+  ],
+  "author": "Barns Team",
   "license": "ISC",
+  "description": "نظام إدارة الخدمات البيطرية للمربيين",
   "dependencies": {
     "@colors/colors": "^1.6.0",
     "bcrypt": "^6.0.0",

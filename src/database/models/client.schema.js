@@ -1,49 +1,99 @@
 import { Schema, model } from "mongoose";
 
-const villageSchema = new Schema({
-    name: {
+// مخطط فرعي للحيوانات
+const animalSchema = new Schema({
+    animal_type: {
         type: String,
+        required: true,
+        enum: ['أغنام', 'ماعز', 'أبقار', 'إبل', 'خيول']
+    },
+    breed: {
+        type: String,
+        trim: true
+    },
+    age: {
+        type: Number,
+        min: 0
+    },
+    gender: {
+        type: String,
+        enum: ['ذكر', 'أنثى'],
         required: true
     },
-    n_coordinate: {
-        type: Number
+    health_status: {
+        type: String,
+        enum: ['سليم', 'مريض', 'تحت العلاج'],
+        default: 'سليم'
     },
-    e_coordinate: {
-        type: Number
+    identification_number: {
+        type: String,
+        trim: true
     }
-});
+}, { _id: true, timestamps: true });
 
 const clientSchema = new Schema({
+    // المعلومات الشخصية
     name: {
         type: String,
-        required: true
+        required: true,
+        trim: true
+    },
+    national_id: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true
     },
     birth_date: {
         type: Date
     },
     phone: {
-        type: String
+        type: String,
+        required: true,
+        trim: true
     },
-    villages: {
-        type: [villageSchema], // مصفوفة من القرى المدمجة
-        validate: [
-            {
-                validator: function(v) {
-                    // التحقق من أن عدد المواقع لا يتجاوز 3
-                    return v.length <= 3;
-                },
-                message: 'لا يمكن للمربي إضافة أكثر من 3 مواقع'
-            },
-            {
-                validator: function(v) {
-                    // التحقق من عدم تكرار اسم القرية لنفس العميل
-                    const names = v.map(village => village.name);
-                    return new Set(names).size === names.length;
-                },
-                message: 'لا يمكن تسجيل نفس القرية مرتين لنفس المربي'
-            }
+    email: {
+        type: String,
+        trim: true,
+        lowercase: true
+    },
+    // القرية - اختيار واحد من القائمة
+    village: {
+        type: String,
+        required: true,
+        enum: [
+            'قرية النور',
+            'قرية السلام',
+            'قرية الأمل',
+            'قرية الخير',
+            'قرية الفردوس',
+            'قرية الرحمة',
+            'قرية البركة'
         ]
-    }
+    },
+    // العنوان التفصيلي
+    detailed_address: {
+        type: String,
+        trim: true
+    },
+    // الحالة
+    status: {
+        type: String,
+        enum: ['نشط', 'غير نشط'],
+        default: 'نشط'
+    },
+    // قائمة الحيوانات
+    animals: [animalSchema],
+    // الخدمات المتاحة للعميل (بدون أسعار)
+    available_services: [{
+        type: String,
+        enum: ['Parasite Control', 'Vaccination', 'Treatment & Monitoring', 'Lab Test', 'Horse Health']
+    }]
 }, { timestamps: true });
+
+// Index للبحث السريع (national_id already has unique index from schema)
+clientSchema.index({ village: 1 });
+clientSchema.index({ status: 1 });
+clientSchema.index({ name: 1 }); // Changed from text to regular index for better performance
 
 export const Client = model('Client', clientSchema);

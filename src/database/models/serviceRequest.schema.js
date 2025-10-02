@@ -7,7 +7,7 @@ const serviceRequestSchema = new Schema({
         required: true
     },
     village: { 
-        type: Schema.Types.ObjectId,
+        type: String, // اسم القرية
         required: true
     },
     request_date: {
@@ -25,7 +25,7 @@ const serviceRequestSchema = new Schema({
     category: {
         type: String,
         required: true,
-        enum: ['Parasite Control', 'Vaccination', 'm clinic treatment', 'Lab Test', 'Horse Health Check']
+        enum: ['Parasite Control', 'Vaccination', 'Treatment & Monitoring', 'Lab Test', 'Horse Health']
     },
     remarks: { // ملاحظات
         type: String
