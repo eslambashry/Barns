@@ -16,7 +16,6 @@ import labRouter from "./src/modules/lab/lab.route.js";
 import horseHealthRouter from "./src/modules/horseHealth/horseHealth.route.js";
 
 config({path: path.resolve('./config/.env')})
-
 const app = express();
 const port = process.env.PORT || 3000
 
@@ -25,14 +24,13 @@ app.use(morgan('dev'));
 app.use(express.json());
 
 // Database Connection
-dbConnection
+dbConnection();
 
 // Routes
 app.use('/clients', clientRouter);
 app.use('/parasite-control', parasiteControlRouter);
 app.use('/vaccination', vaccinationRouter);
 app.use('/treatment', treatmentRouter);
-app.use('/lab', labRouter);
 app.use('/horse-health', horseHealthRouter);
 
 app.get("/", (req, res) => res.send("Barns Management System API"));
@@ -41,8 +39,3 @@ app.get("/", (req, res) => res.send("Barns Management System API"));
 app.use(globalResponse);
 
 app.listen(port, () => console.log(`🥟 app port is `.yellow +  ` ${port} 🦅`.blue.underline)); 
-
-
-
-
-
