@@ -1,49 +1,59 @@
 import { Schema, model } from "mongoose";
 
-const villageSchema = new Schema({
-    name: {
-        type: String,
-        required: true
-    },
-    n_coordinate: {
-        type: Number
-    },
-    e_coordinate: {
-        type: Number
-    }
-});
 
 const clientSchema = new Schema({
+    // المعلومات الشخصية
     name: {
         type: String,
-        required: true
+        required: true,
+        trim: true
+    },
+    national_id: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true
     },
     birth_date: {
         type: Date
     },
     phone: {
-        type: String
+        type: String,
+        required: true,
+        trim: true
     },
-    villages: {
-        type: [villageSchema], // مصفوفة من القرى المدمجة
-        validate: [
-            {
-                validator: function(v) {
-                    // التحقق من أن عدد المواقع لا يتجاوز 3
-                    return v.length <= 3;
-                },
-                message: 'لا يمكن للمربي إضافة أكثر من 3 مواقع'
-            },
-            {
-                validator: function(v) {
-                    // التحقق من عدم تكرار اسم القرية لنفس العميل
-                    const names = v.map(village => village.name);
-                    return new Set(names).size === names.length;
-                },
-                message: 'لا يمكن تسجيل نفس القرية مرتين لنفس المربي'
-            }
+    village: {
+        type: String,
+        required: true,
+        enum: [
+            'قرية النور',
+            'قرية السلام',
+            'قرية الأمل',
+            'قرية الخير',
+            'قرية الفردوس',
+            'قرية الرحمة',
+            'قرية البركة'
         ]
-    }
+    },
+    longitude: {
+        type: Number,
+        min: -180,
+        max: 180
+    },
+    latitude: {
+        type: Number,
+        min: -90,
+        max: 90
+    },
+    // العنوان التفصيلي
+    detailed_address: {
+        type: String,
+        trim: true
+    },
+    available_services: [{
+        type: String,
+        enum: ['Parasite Control', 'Vaccination', 'Treatment & Monitoring', 'Lab Test', 'Horse Health']
+    }]
 }, { timestamps: true });
 
 export const Client = model('Client', clientSchema);
