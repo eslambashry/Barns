@@ -3,7 +3,7 @@ import { asyncHandler } from "../../utilities/errorHandeling.js";
 
 // إضافة مربي جديد
 export const addClient = asyncHandler(async (req, res, next) => {
-    const { name, national_id, birth_date, phone, email, village, longitude, latitude, detailed_address, status, animals, available_services } = req.body;
+    const { name, national_id, birth_date, phone, village, longitude, latitude, detailed_address, available_services } = req.body;
 
     // التحقق من عدم وجود نفس الهوية مسبقاً
     const existingClient = await Client.findOne({ national_id });
@@ -20,53 +20,17 @@ export const addClient = asyncHandler(async (req, res, next) => {
         national_id,
         birth_date,
         phone,
-        email,
         village,
         longitude,
         latitude,
         detailed_address,
-        status: status || 'نشط',
-        animals: animals || [],
         available_services: available_services || ['Parasite Control', 'Vaccination', 'Treatment & Monitoring', 'Lab Test', 'Horse Health']
     });
 
     res.status(201).json({
         success: true,
         message: 'تم إضافة المربي بنجاح',
-        data: newClient,
-        created_at: newClient.createdAt
-    });
-});
-
-// إضافة حيوان جديد للمربي
-export const addAnimalToClient = asyncHandler(async (req, res, next) => {
-    const { clientId } = req.params;
-    const { animal_type, breed, age, animal_count, gender, health_status, identification_number } = req.body;
-
-    const client = await Client.findById(clientId);
-    if (!client) {
-        return res.status(404).json({
-            success: false,
-            message: 'المربي غير موجود'
-        });
-    }
-
-    client.animals.push({
-        animal_type,
-        breed,
-        age,
-        animal_count: animal_count || 1,
-        gender,
-        health_status: health_status || 'سليم',
-        identification_number
-    });
-    
-    await client.save();
-
-    res.status(200).json({
-        success: true,
-        message: 'تم إضافة الحيوان بنجاح',
-        data: client
+        data: newClient
     });
 });
 
@@ -116,7 +80,7 @@ export const getClientById = asyncHandler(async (req, res, next) => {
 
 // البحث بالقرية أو اسم المربي
 export const searchClients = asyncHandler(async (req, res, next) => {
-    const { village, name, status } = req.query;
+    const { village, name } = req.query;
 
     let query = {};
 
@@ -126,10 +90,6 @@ export const searchClients = asyncHandler(async (req, res, next) => {
 
     if (name) {
         query.name = { $regex: name, $options: 'i' };
-    }
-
-    if (status) {
-        query.status = status;
     }
 
     const clients = await Client.find(query);
@@ -276,67 +236,6 @@ export const addServiceToClient = asyncHandler(async (req, res, next) => {
     });
 });
 
-// تحديث حيوان
-export const updateAnimal = asyncHandler(async (req, res, next) => {
-    const { clientId, animalId } = req.params;
-    const updateData = req.body;
-
-    const client = await Client.findById(clientId);
-    if (!client) {
-        return res.status(404).json({
-            success: false,
-            message: 'المربي غير موجود'
-        });
-    }
-
-    const animal = client.animals.id(animalId);
-    if (!animal) {
-        return res.status(404).json({
-            success: false,
-            message: 'الحيوان غير موجود'
-        });
-    }
-
-    // تحديث بيانات الحيوان
-    Object.assign(animal, updateData);
-    await client.save();
-
-    res.status(200).json({
-        success: true,
-        message: 'تم تحديث بيانات الحيوان بنجاح',
-        data: client
-    });
-});
-
-// حذف حيوان
-export const deleteAnimal = asyncHandler(async (req, res, next) => {
-    const { clientId, animalId } = req.params;
-
-    const client = await Client.findById(clientId);
-    if (!client) {
-        return res.status(404).json({
-            success: false,
-            message: 'المربي غير موجود'
-        });
-    }
-
-    const animal = client.animals.id(animalId);
-    if (!animal) {
-        return res.status(404).json({
-            success: false,
-            message: 'الحيوان غير موجود'
-        });
-    }
-
-    animal.deleteOne();
-    await client.save();
-
-    res.status(200).json({
-        success: true,
-        message: 'تم حذف الحيوان بنجاح',
-        data: client
-    });
-});
 
 // الحصول على مربيين حسب القرية
 export const getClientsByVillage = asyncHandler(async (req, res, next) => {
@@ -354,28 +253,6 @@ export const getClientsByVillage = asyncHandler(async (req, res, next) => {
 // الحصول على إحصائيات المربيين
 export const getClientsStats = asyncHandler(async (req, res, next) => {
     const totalClients = await Client.countDocuments();
-    const activeClients = await Client.countDocuments({ status: 'نشط' });
-    const inactiveClients = await Client.countDocuments({ status: 'غير نشط' });
-
-    // إحصائيات الحيوانات
-    const clientsWithAnimals = await Client.find({}, 'animals');
-    let totalAnimals = 0;
-    const animalsByType = {
-        'أغنام': 0,
-        'ماعز': 0,
-        'أبقار': 0,
-        'إبل': 0,
-        'خيول': 0
-    };
-
-    clientsWithAnimals.forEach(client => {
-        totalAnimals += client.animals.length;
-        client.animals.forEach(animal => {
-            if (animalsByType[animal.animal_type] !== undefined) {
-                animalsByType[animal.animal_type]++;
-            }
-        });
-    });
 
     // إحصائيات القرى
     const clientsByVillage = await Client.aggregate([
@@ -391,10 +268,6 @@ export const getClientsStats = asyncHandler(async (req, res, next) => {
         success: true,
         data: {
             totalClients,
-            activeClients,
-            inactiveClients,
-            totalAnimals,
-            animalsByType,
             clientsByVillage
         }
     });

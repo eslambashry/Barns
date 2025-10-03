@@ -4,12 +4,12 @@ import { isAuth } from "../../middleware/isAuth.js";
 
 const router = Router();
 
-router.post('/create', isAuth, vaccinationController.createVaccinationReport);
-router.get('/', isAuth, vaccinationController.getAllVaccinationReports);
-router.get('/stats', isAuth, vaccinationController.getVaccinationStats);
-router.get('/filter', isAuth, vaccinationController.filterVaccinationReports);
-router.get('/:reportId', isAuth, vaccinationController.getVaccinationReportById);
-router.put('/:reportId', isAuth, vaccinationController.updateVaccinationReport);
-router.delete('/:reportId', isAuth, vaccinationController.deleteVaccinationReport);
+router.post('/create', isAuth, vaccinationController.createReport);
+router.get('/', isAuth, vaccinationController.getAllReports);
+router.get('/stats', isAuth, vaccinationController.getStats);
+router.get('/filter', isAuth, vaccinationController.filterReports);
+router.get('/:reportId', isAuth, vaccinationController.getReportById);
+router.put('/:reportId', isAuth, vaccinationController.updateReport);
+router.delete('/:reportId', isAuth, vaccinationController.deleteReport);
 
 export default router;

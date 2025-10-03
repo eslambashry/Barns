@@ -1,7 +1,53 @@
 import { Schema, model } from "mongoose";
 
-// مخطط فرعي لمعلومات القطيع
-const herdInfoSchema = new Schema({
+const parasiteControlReportSchema = new Schema({
+    serial_no: { 
+        type: String,
+        unique: true,
+        required: true
+    },
+    date: {
+        type: Date,
+        required: true,
+        default: Date.now
+    },
+    // Owner Information
+    owner_name: {
+        type: String,
+        required: true
+    },
+    owner_id: {
+        type: String,
+        required: true
+    },
+    owner_birthdate: {
+        type: Date
+    },
+    owner_phone: {
+        type: String,
+        required: true
+    },
+    // Location
+    herd_location: {
+        type: String,
+        required: true
+    },
+    coordinate_e: {
+        type: Number
+    },
+    coordinate_n: {
+        type: Number
+    },
+    // Team Info
+    supervisor: {
+        type: String,
+        required: true
+    },
+    vehicle_no: {
+        type: String,
+        required: true
+    },
+    // Herd Numbers
     total_sheep: { type: Number, default: 0 },
     young_sheep: { type: Number, default: 0 },
     female_sheep: { type: Number, default: 0 },
@@ -22,128 +68,34 @@ const herdInfoSchema = new Schema({
     female_cattle: { type: Number, default: 0 },
     treated_cattle: { type: Number, default: 0 },
     
-    // الحقول المجمعة
+    // Totals
     total_herd: { type: Number, default: 0 },
     total_young: { type: Number, default: 0 },
     total_female: { type: Number, default: 0 },
-    total_treated: { type: Number, default: 0 }
-}, { _id: false });
-
-// مخطط فرعي لمعلومات الحظائر
-const animalBarnsSchema = new Schema({
-    is_treated: { 
-        type: Boolean, 
-        default: false 
-    },
-    area_sqm: { 
-        type: Number,
-        min: 0
-    },
-    insecticide_type: { 
-        type: String 
-    },
-    insecticide_quantity: { 
-        type: Number,
-        min: 0
-    }
-}, { _id: false });
-
-// مخطط فرعي للمبيدات المستخدمة
-const insecticideUsedSchema = new Schema({
-    type: { 
-        type: String, 
-        required: true 
-    },
-    category: { 
-        type: String, 
-        required: true 
-    },
-    quantity: { 
-        type: Number, 
-        required: true,
-        min: 0
-    }
-}, { _id: false });
-
-const parasiteControlReportSchema = new Schema({
-    serial_no: { 
-        type: String,
-        unique: true,
-        required: true
-    },
-    service_request: {
-        type: Schema.Types.ObjectId,
-        ref: 'ServiceRequest',
-        required: true
-    },
-    client: {
-        type: Schema.Types.ObjectId,
-        ref: 'Client',
-        required: true
-    },
-    team: { 
-        type: Schema.Types.ObjectId,
-        ref: 'Team',
-        required: true
-    },
-    report_date: {
-        type: Date,
-        required: true,
-        default: Date.now
-    },
+    total_treated: { type: Number, default: 0 },
     
-    // معلومات القطيع
-    herd_information: {
-        type: herdInfoSchema,
-        required: true
-    },
+    // Insecticide Information
+    insecticide_type: { type: String },
+    insecticide_volume_ml: { type: Number, default: 0 },
+    insecticide_category: { type: String },
+    insecticide_status: { type: String },
     
-    // معلومات المبيدات المستخدمة
-    insecticides_used: [insecticideUsedSchema],
+    // Animal Barns
+    animal_barn_size_sqm: { type: Number, default: 0 },
+    breeding_sites: { type: String },
+    parasite_control_volume: { type: Number, default: 0 },
+    parasite_control_status: { type: String },
     
-    // معلومات الحظائر
-    animal_barns: animalBarnsSchema,
+    // Health & Compliance
+    herd_health_status: { type: String },
+    complying_to_instructions: { type: Boolean, default: true },
     
-    // حالة القطيع
-    breeding_status: { 
-        type: String 
-    },
-    herd_health_status: { 
-        type: String,
-        enum: ['Healthy', 'Sick', 'Under Treatment', 'Quarantine'],
-        default: 'Healthy'
-    },
-    complying_to_instructions: { 
-        type: Boolean,
-        default: true
-    },
+    // Request Information
+    request_date: { type: Date },
+    request_situation: { type: String },
+    request_fulfilling_date: { type: Date },
     
-    // متطلبات مكافحة الطفيليات
-    parasite_control_requirement_fulfilled: {
-        type: Boolean,
-        default: false
-    },
-    
-    // معلومات الطلب
-    request_situation: {
-        type: String,
-        enum: ['Open', 'In-Progress', 'Closed', 'Cancelled'],
-        default: 'Open'
-    },
-    request_fulfilling_date: {
-        type: Date
-    },
-    
-    // الفئة
-    category: {
-        type: String,
-        default: 'Parasite Control Activity'
-    },
-    
-    // ملاحظات
-    remarks: { 
-        type: String
-    }
+    remarks: { type: String }
 }, { timestamps: true });
 
 export const ParasiteControlReport = model('ParasiteControlReport', parasiteControlReportSchema);

@@ -1,80 +1,59 @@
 import { ParasiteControlReport } from "../../database/models/parasiteControlReport.schema.js";
-import { ServiceRequest } from "../../database/models/serviceRequest.schema.js";
 import { asyncHandler } from "../../utilities/errorHandeling.js";
 
-// إنشاء تقرير مكافحة طفيليات جديد
-export const createParasiteControlReport = asyncHandler(async (req, res, next) => {
+// إنشاء تقرير مكافحة طفيليات
+export const createReport = asyncHandler(async (req, res, next) => {
     const reportData = req.body;
 
-    // التحقق من وجود طلب الخدمة
-    const serviceRequest = await ServiceRequest.findById(reportData.service_request);
-    if (!serviceRequest) {
-        return res.status(404).json({
-            success: false,
-            message: 'طلب الخدمة غير موجود'
-        });
-    }
-
-    // التحقق من أن الطلب من نوع مكافحة الطفيليات
-    if (serviceRequest.category !== 'Parasite Control') {
-        return res.status(400).json({
-            success: false,
-            message: 'طلب الخدمة ليس من نوع مكافحة الطفيليات'
-        });
-    }
-
-    // حساب الإجماليات
-    if (reportData.herd_information) {
-        const herd = reportData.herd_information;
-        herd.total_herd = (herd.total_sheep || 0) + (herd.total_goats || 0) + 
-                          (herd.total_camel || 0) + (herd.total_cattle || 0);
-        herd.total_young = (herd.young_sheep || 0) + (herd.young_goats || 0) + 
-                          (herd.young_camels || 0) + (herd.young_cattle || 0);
-        herd.total_female = (herd.female_sheep || 0) + (herd.female_goats || 0) + 
-                           (herd.female_camels || 0) + (herd.female_cattle || 0);
-        herd.total_treated = (herd.treated_sheep || 0) + (herd.treated_goats || 0) + 
-                            (herd.treated_camels || 0) + (herd.treated_cattle || 0);
-    }
+    // حساب الإجماليات تلقائياً
+    reportData.total_herd = (reportData.total_sheep || 0) + (reportData.total_goats || 0) + 
+                            (reportData.total_camel || 0) + (reportData.total_cattle || 0);
+    
+    reportData.total_young = (reportData.young_sheep || 0) + (reportData.young_goats || 0) + 
+                             (reportData.young_camels || 0) + (reportData.young_cattle || 0);
+    
+    reportData.total_female = (reportData.female_sheep || 0) + (reportData.female_goats || 0) + 
+                              (reportData.female_camels || 0) + (reportData.female_cattle || 0);
+    
+    reportData.total_treated = (reportData.treated_sheep || 0) + (reportData.treated_goats || 0) + 
+                               (reportData.treated_camels || 0) + (reportData.treated_cattle || 0);
 
     const report = await ParasiteControlReport.create(reportData);
 
     res.status(201).json({
         success: true,
-        message: 'تم إنشاء تقرير مكافحة الطفيليات بنجاح',
+        message: 'تم إنشاء التقرير بنجاح',
         data: report
     });
 });
 
-// الحصول على جميع تقارير مكافحة الطفيليات
-export const getAllParasiteControlReports = asyncHandler(async (req, res, next) => {
+// الحصول على جميع التقارير
+export const getAllReports = asyncHandler(async (req, res, next) => {
+    const { page = 1, limit = 50 } = req.query;
+    const skip = (page - 1) * limit;
+
     const reports = await ParasiteControlReport.find()
-        .populate('service_request')
-        .populate('client')
-        .populate({
-            path: 'team',
-            populate: { path: 'supervisor department' }
-        })
-        .sort({ report_date: -1 });
+        .sort({ date: -1 })
+        .skip(skip)
+        .limit(parseInt(limit));
+
+    const total = await ParasiteControlReport.countDocuments();
 
     res.status(200).json({
         success: true,
         count: reports.length,
+        total,
+        page: parseInt(page),
+        totalPages: Math.ceil(total / limit),
         data: reports
     });
 });
 
 // الحصول على تقرير واحد
-export const getParasiteControlReportById = asyncHandler(async (req, res, next) => {
+export const getReportById = asyncHandler(async (req, res, next) => {
     const { reportId } = req.params;
 
-    const report = await ParasiteControlReport.findById(reportId)
-        .populate('service_request')
-        .populate('client')
-        .populate({
-            path: 'team',
-            populate: { path: 'supervisor department' }
-        });
-
+    const report = await ParasiteControlReport.findById(reportId);
     if (!report) {
         return res.status(404).json({
             success: false,
@@ -89,21 +68,21 @@ export const getParasiteControlReportById = asyncHandler(async (req, res, next) 
 });
 
 // تحديث تقرير
-export const updateParasiteControlReport = asyncHandler(async (req, res, next) => {
+export const updateReport = asyncHandler(async (req, res, next) => {
     const { reportId } = req.params;
     const updateData = req.body;
 
-    // إعادة حساب الإجماليات إذا تم تحديث معلومات القطيع
-    if (updateData.herd_information) {
-        const herd = updateData.herd_information;
-        herd.total_herd = (herd.total_sheep || 0) + (herd.total_goats || 0) + 
-                          (herd.total_camel || 0) + (herd.total_cattle || 0);
-        herd.total_young = (herd.young_sheep || 0) + (herd.young_goats || 0) + 
-                          (herd.young_camels || 0) + (herd.young_cattle || 0);
-        herd.total_female = (herd.female_sheep || 0) + (herd.female_goats || 0) + 
-                           (herd.female_camels || 0) + (herd.female_cattle || 0);
-        herd.total_treated = (herd.treated_sheep || 0) + (herd.treated_goats || 0) + 
-                            (herd.treated_camels || 0) + (herd.treated_cattle || 0);
+    // إعادة حساب الإجماليات إذا تم تحديث الأعداد
+    if (updateData.total_sheep !== undefined || updateData.total_goats !== undefined ||
+        updateData.total_camel !== undefined || updateData.total_cattle !== undefined) {
+        
+        const report = await ParasiteControlReport.findById(reportId);
+        if (report) {
+            updateData.total_herd = (updateData.total_sheep ?? report.total_sheep) + 
+                                   (updateData.total_goats ?? report.total_goats) + 
+                                   (updateData.total_camel ?? report.total_camel) + 
+                                   (updateData.total_cattle ?? report.total_cattle);
+        }
     }
 
     const report = await ParasiteControlReport.findByIdAndUpdate(
@@ -127,7 +106,7 @@ export const updateParasiteControlReport = asyncHandler(async (req, res, next) =
 });
 
 // حذف تقرير
-export const deleteParasiteControlReport = asyncHandler(async (req, res, next) => {
+export const deleteReport = asyncHandler(async (req, res, next) => {
     const { reportId } = req.params;
 
     const report = await ParasiteControlReport.findByIdAndDelete(reportId);
@@ -144,30 +123,27 @@ export const deleteParasiteControlReport = asyncHandler(async (req, res, next) =
     });
 });
 
-// فلترة التقارير حسب التاريخ والمربي
-export const filterParasiteControlReports = asyncHandler(async (req, res, next) => {
-    const { startDate, endDate, clientId } = req.query;
+// فلترة التقارير
+export const filterReports = asyncHandler(async (req, res, next) => {
+    const { startDate, endDate, owner_id, herd_location } = req.query;
 
     let query = {};
 
     if (startDate || endDate) {
-        query.report_date = {};
-        if (startDate) query.report_date.$gte = new Date(startDate);
-        if (endDate) query.report_date.$lte = new Date(endDate);
+        query.date = {};
+        if (startDate) query.date.$gte = new Date(startDate);
+        if (endDate) query.date.$lte = new Date(endDate);
     }
 
-    if (clientId) {
-        query.client = clientId;
+    if (owner_id) {
+        query.owner_id = owner_id;
     }
 
-    const reports = await ParasiteControlReport.find(query)
-        .populate('service_request')
-        .populate('client')
-        .populate({
-            path: 'team',
-            populate: { path: 'supervisor department' }
-        })
-        .sort({ report_date: -1 });
+    if (herd_location) {
+        query.herd_location = { $regex: herd_location, $options: 'i' };
+    }
+
+    const reports = await ParasiteControlReport.find(query).sort({ date: -1 });
 
     res.status(200).json({
         success: true,
@@ -176,39 +152,36 @@ export const filterParasiteControlReports = asyncHandler(async (req, res, next) 
     });
 });
 
-// إحصائيات المربيين الذين تلقوا الخدمة في فترة معينة
-export const getParasiteControlStats = asyncHandler(async (req, res, next) => {
+// إحصائيات
+export const getStats = asyncHandler(async (req, res, next) => {
     const { startDate, endDate } = req.query;
 
-    let matchQuery = {};
+    let query = {};
     if (startDate || endDate) {
-        matchQuery.report_date = {};
-        if (startDate) matchQuery.report_date.$gte = new Date(startDate);
-        if (endDate) matchQuery.report_date.$lte = new Date(endDate);
+        query.date = {};
+        if (startDate) query.date.$gte = new Date(startDate);
+        if (endDate) query.date.$lte = new Date(endDate);
     }
 
+    const totalReports = await ParasiteControlReport.countDocuments(query);
+    
     const stats = await ParasiteControlReport.aggregate([
-        { $match: matchQuery },
+        { $match: query },
         {
             $group: {
                 _id: null,
-                totalClients: { $addToSet: '$client' },
-                totalReports: { $sum: 1 },
-                totalTreated: { $sum: '$herd_information.total_treated' }
-            }
-        },
-        {
-            $project: {
-                _id: 0,
-                totalClients: { $size: '$totalClients' },
-                totalReports: 1,
-                totalTreated: 1
+                totalHerd: { $sum: '$total_herd' },
+                totalTreated: { $sum: '$total_treated' }
             }
         }
     ]);
 
     res.status(200).json({
         success: true,
-        data: stats[0] || { totalClients: 0, totalReports: 0, totalTreated: 0 }
+        data: {
+            totalReports,
+            totalHerd: stats[0]?.totalHerd || 0,
+            totalTreated: stats[0]?.totalTreated || 0
+        }
     });
 });

@@ -4,13 +4,13 @@ import { isAuth } from "../../middleware/isAuth.js";
 
 const router = Router();
 
-router.post('/create', isAuth, labController.createLabReport);
-router.get('/', isAuth, labController.getAllLabReports);
-router.get('/stats', isAuth, labController.getLabStats);
-router.get('/filter', isAuth, labController.filterLabReports);
-router.get('/sample/:sampleCode', isAuth, labController.getLabReportBySampleCode);
-router.get('/:reportId', isAuth, labController.getLabReportById);
-router.put('/:reportId', isAuth, labController.updateLabReport);
-router.delete('/:reportId', isAuth, labController.deleteLabReport);
+router.post('/create', isAuth, labController.createReport);
+router.get('/', isAuth, labController.getAllReports);
+router.get('/stats', isAuth, labController.getStats);
+router.get('/filter', isAuth, labController.filterReports);
+router.get('/sample/:sampleCode', isAuth, labController.getBySampleCode);
+router.get('/:reportId', isAuth, labController.getReportById);
+router.put('/:reportId', isAuth, labController.updateReport);
+router.delete('/:reportId', isAuth, labController.deleteReport);
 
 export default router;

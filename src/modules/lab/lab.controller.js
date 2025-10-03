@@ -1,65 +1,44 @@
 import { LabReport } from "../../database/models/labReport.schema.js";
-import { ServiceRequest } from "../../database/models/serviceRequest.schema.js";
 import { asyncHandler } from "../../utilities/errorHandeling.js";
 
-// إنشاء تقرير مختبر جديد
-export const createLabReport = asyncHandler(async (req, res, next) => {
-    const reportData = req.body;
-
-    const serviceRequest = await ServiceRequest.findById(reportData.service_request);
-    if (!serviceRequest) {
-        return res.status(404).json({
-            success: false,
-            message: 'طلب الخدمة غير موجود'
-        });
-    }
-
-    if (serviceRequest.category !== 'Lab Test') {
-        return res.status(400).json({
-            success: false,
-            message: 'طلب الخدمة ليس من نوع الفحص المخبري'
-        });
-    }
-
-    const report = await LabReport.create(reportData);
+// إنشاء تقرير مختبر
+export const createReport = asyncHandler(async (req, res, next) => {
+    const report = await LabReport.create(req.body);
 
     res.status(201).json({
         success: true,
-        message: 'تم إنشاء تقرير المختبر بنجاح',
+        message: 'تم إنشاء التقرير بنجاح',
         data: report
     });
 });
 
-// الحصول على جميع تقارير المختبر
-export const getAllLabReports = asyncHandler(async (req, res, next) => {
+// الحصول على جميع التقارير
+export const getAllReports = asyncHandler(async (req, res, next) => {
+    const { page = 1, limit = 50 } = req.query;
+    const skip = (page - 1) * limit;
+
     const reports = await LabReport.find()
-        .populate('service_request')
-        .populate('client')
-        .populate({
-            path: 'team',
-            populate: { path: 'supervisor department' }
-        })
-        .sort({ report_date: -1 });
+        .sort({ date: -1 })
+        .skip(skip)
+        .limit(parseInt(limit));
+
+    const total = await LabReport.countDocuments();
 
     res.status(200).json({
         success: true,
         count: reports.length,
+        total,
+        page: parseInt(page),
+        totalPages: Math.ceil(total / limit),
         data: reports
     });
 });
 
 // الحصول على تقرير واحد
-export const getLabReportById = asyncHandler(async (req, res, next) => {
+export const getReportById = asyncHandler(async (req, res, next) => {
     const { reportId } = req.params;
 
-    const report = await LabReport.findById(reportId)
-        .populate('service_request')
-        .populate('client')
-        .populate({
-            path: 'team',
-            populate: { path: 'supervisor department' }
-        });
-
+    const report = await LabReport.findById(reportId);
     if (!report) {
         return res.status(404).json({
             success: false,
@@ -74,17 +53,10 @@ export const getLabReportById = asyncHandler(async (req, res, next) => {
 });
 
 // البحث بكود العينة
-export const getLabReportBySampleCode = asyncHandler(async (req, res, next) => {
+export const getBySampleCode = asyncHandler(async (req, res, next) => {
     const { sampleCode } = req.params;
 
-    const report = await LabReport.findOne({ sample_code: sampleCode })
-        .populate('service_request')
-        .populate('client')
-        .populate({
-            path: 'team',
-            populate: { path: 'supervisor department' }
-        });
-
+    const report = await LabReport.findOne({ sample_code: sampleCode });
     if (!report) {
         return res.status(404).json({
             success: false,
@@ -99,13 +71,12 @@ export const getLabReportBySampleCode = asyncHandler(async (req, res, next) => {
 });
 
 // تحديث تقرير
-export const updateLabReport = asyncHandler(async (req, res, next) => {
+export const updateReport = asyncHandler(async (req, res, next) => {
     const { reportId } = req.params;
-    const updateData = req.body;
 
     const report = await LabReport.findByIdAndUpdate(
         reportId,
-        updateData,
+        req.body,
         { new: true, runValidators: true }
     );
 
@@ -124,7 +95,7 @@ export const updateLabReport = asyncHandler(async (req, res, next) => {
 });
 
 // حذف تقرير
-export const deleteLabReport = asyncHandler(async (req, res, next) => {
+export const deleteReport = asyncHandler(async (req, res, next) => {
     const { reportId } = req.params;
 
     const report = await LabReport.findByIdAndDelete(reportId);
@@ -142,41 +113,26 @@ export const deleteLabReport = asyncHandler(async (req, res, next) => {
 });
 
 // فلترة التقارير
-export const filterLabReports = asyncHandler(async (req, res, next) => {
-    const { startDate, endDate, clientId, animalType, sampleType, sampleValid } = req.query;
+export const filterReports = asyncHandler(async (req, res, next) => {
+    const { startDate, endDate, owner_id, sample_type } = req.query;
 
     let query = {};
 
     if (startDate || endDate) {
-        query.report_date = {};
-        if (startDate) query.report_date.$gte = new Date(startDate);
-        if (endDate) query.report_date.$lte = new Date(endDate);
+        query.date = {};
+        if (startDate) query.date.$gte = new Date(startDate);
+        if (endDate) query.date.$lte = new Date(endDate);
     }
 
-    if (clientId) {
-        query.client = clientId;
+    if (owner_id) {
+        query.owner_id = owner_id;
     }
 
-    if (animalType) {
-        query.animal_type = animalType;
+    if (sample_type) {
+        query.sample_type = sample_type;
     }
 
-    if (sampleType) {
-        query.sample_type = sampleType;
-    }
-
-    if (sampleValid !== undefined) {
-        query.sample_valid_for_testing = sampleValid === 'true';
-    }
-
-    const reports = await LabReport.find(query)
-        .populate('service_request')
-        .populate('client')
-        .populate({
-            path: 'team',
-            populate: { path: 'supervisor department' }
-        })
-        .sort({ report_date: -1 });
+    const reports = await LabReport.find(query).sort({ date: -1 });
 
     res.status(200).json({
         success: true,
@@ -185,45 +141,38 @@ export const filterLabReports = asyncHandler(async (req, res, next) => {
     });
 });
 
-// إحصائيات المختبر
-export const getLabStats = asyncHandler(async (req, res, next) => {
+// إحصائيات
+export const getStats = asyncHandler(async (req, res, next) => {
     const { startDate, endDate } = req.query;
 
-    let matchQuery = {};
+    let query = {};
     if (startDate || endDate) {
-        matchQuery.report_date = {};
-        if (startDate) matchQuery.report_date.$gte = new Date(startDate);
-        if (endDate) matchQuery.report_date.$lte = new Date(endDate);
+        query.date = {};
+        if (startDate) query.date.$gte = new Date(startDate);
+        if (endDate) query.date.$lte = new Date(endDate);
     }
 
+    const totalReports = await LabReport.countDocuments(query);
+    
     const stats = await LabReport.aggregate([
-        { $match: matchQuery },
+        { $match: query },
         {
             $group: {
                 _id: null,
-                totalClients: { $addToSet: '$client' },
-                totalReports: { $sum: 1 },
-                validSamples: {
-                    $sum: { $cond: ['$sample_valid_for_testing', 1, 0] }
-                },
-                invalidSamples: {
-                    $sum: { $cond: ['$sample_valid_for_testing', 0, 1] }
-                }
-            }
-        },
-        {
-            $project: {
-                _id: 0,
-                totalClients: { $size: '$totalClients' },
-                totalReports: 1,
-                validSamples: 1,
-                invalidSamples: 1
+                totalSamples: { $sum: '$samples_number' },
+                totalPositive: { $sum: '$positive_cases' },
+                totalNegative: { $sum: '$negative_cases' }
             }
         }
     ]);
 
     res.status(200).json({
         success: true,
-        data: stats[0] || { totalClients: 0, totalReports: 0, validSamples: 0, invalidSamples: 0 }
+        data: {
+            totalReports,
+            totalSamples: stats[0]?.totalSamples || 0,
+            totalPositive: stats[0]?.totalPositive || 0,
+            totalNegative: stats[0]?.totalNegative || 0
+        }
     });
 });

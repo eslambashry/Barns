@@ -1,65 +1,44 @@
 import { HorseHealthReport } from "../../database/models/horseHealthReport.schema.js";
-import { ServiceRequest } from "../../database/models/serviceRequest.schema.js";
 import { asyncHandler } from "../../utilities/errorHandeling.js";
 
-// إنشاء تقرير صحة خيول جديد
-export const createHorseHealthReport = asyncHandler(async (req, res, next) => {
-    const reportData = req.body;
-
-    const serviceRequest = await ServiceRequest.findById(reportData.service_request);
-    if (!serviceRequest) {
-        return res.status(404).json({
-            success: false,
-            message: 'طلب الخدمة غير موجود'
-        });
-    }
-
-    if (serviceRequest.category !== 'Horse Health Check') {
-        return res.status(400).json({
-            success: false,
-            message: 'طلب الخدمة ليس من نوع صحة الخيول'
-        });
-    }
-
-    const report = await HorseHealthReport.create(reportData);
+// إنشاء تقرير صحة خيول
+export const createReport = asyncHandler(async (req, res, next) => {
+    const report = await HorseHealthReport.create(req.body);
 
     res.status(201).json({
         success: true,
-        message: 'تم إنشاء تقرير صحة الخيول بنجاح',
+        message: 'تم إنشاء التقرير بنجاح',
         data: report
     });
 });
 
-// الحصول على جميع تقارير صحة الخيول
-export const getAllHorseHealthReports = asyncHandler(async (req, res, next) => {
+// الحصول على جميع التقارير
+export const getAllReports = asyncHandler(async (req, res, next) => {
+    const { page = 1, limit = 50 } = req.query;
+    const skip = (page - 1) * limit;
+
     const reports = await HorseHealthReport.find()
-        .populate('service_request')
-        .populate('client')
-        .populate({
-            path: 'team',
-            populate: { path: 'supervisor department' }
-        })
-        .sort({ report_date: -1 });
+        .sort({ date: -1 })
+        .skip(skip)
+        .limit(parseInt(limit));
+
+    const total = await HorseHealthReport.countDocuments();
 
     res.status(200).json({
         success: true,
         count: reports.length,
+        total,
+        page: parseInt(page),
+        totalPages: Math.ceil(total / limit),
         data: reports
     });
 });
 
 // الحصول على تقرير واحد
-export const getHorseHealthReportById = asyncHandler(async (req, res, next) => {
+export const getReportById = asyncHandler(async (req, res, next) => {
     const { reportId } = req.params;
 
-    const report = await HorseHealthReport.findById(reportId)
-        .populate('service_request')
-        .populate('client')
-        .populate({
-            path: 'team',
-            populate: { path: 'supervisor department' }
-        });
-
+    const report = await HorseHealthReport.findById(reportId);
     if (!report) {
         return res.status(404).json({
             success: false,
@@ -74,13 +53,12 @@ export const getHorseHealthReportById = asyncHandler(async (req, res, next) => {
 });
 
 // تحديث تقرير
-export const updateHorseHealthReport = asyncHandler(async (req, res, next) => {
+export const updateReport = asyncHandler(async (req, res, next) => {
     const { reportId } = req.params;
-    const updateData = req.body;
 
     const report = await HorseHealthReport.findByIdAndUpdate(
         reportId,
-        updateData,
+        req.body,
         { new: true, runValidators: true }
     );
 
@@ -99,7 +77,7 @@ export const updateHorseHealthReport = asyncHandler(async (req, res, next) => {
 });
 
 // حذف تقرير
-export const deleteHorseHealthReport = asyncHandler(async (req, res, next) => {
+export const deleteReport = asyncHandler(async (req, res, next) => {
     const { reportId } = req.params;
 
     const report = await HorseHealthReport.findByIdAndDelete(reportId);
@@ -117,37 +95,26 @@ export const deleteHorseHealthReport = asyncHandler(async (req, res, next) => {
 });
 
 // فلترة التقارير
-export const filterHorseHealthReports = asyncHandler(async (req, res, next) => {
-    const { startDate, endDate, clientId, healthCheckType, healthStatus } = req.query;
+export const filterReports = asyncHandler(async (req, res, next) => {
+    const { startDate, endDate, owner_id, diagnosis } = req.query;
 
     let query = {};
 
     if (startDate || endDate) {
-        query.report_date = {};
-        if (startDate) query.report_date.$gte = new Date(startDate);
-        if (endDate) query.report_date.$lte = new Date(endDate);
+        query.date = {};
+        if (startDate) query.date.$gte = new Date(startDate);
+        if (endDate) query.date.$lte = new Date(endDate);
     }
 
-    if (clientId) {
-        query.client = clientId;
+    if (owner_id) {
+        query.owner_id = owner_id;
     }
 
-    if (healthCheckType) {
-        query.health_check_type = healthCheckType;
+    if (diagnosis) {
+        query.diagnosis = { $regex: diagnosis, $options: 'i' };
     }
 
-    if (healthStatus) {
-        query.health_status = healthStatus;
-    }
-
-    const reports = await HorseHealthReport.find(query)
-        .populate('service_request')
-        .populate('client')
-        .populate({
-            path: 'team',
-            populate: { path: 'supervisor department' }
-        })
-        .sort({ report_date: -1 });
+    const reports = await HorseHealthReport.find(query).sort({ date: -1 });
 
     res.status(200).json({
         success: true,
@@ -156,89 +123,23 @@ export const filterHorseHealthReports = asyncHandler(async (req, res, next) => {
     });
 });
 
-// إحصائيات صحة الخيول
-export const getHorseHealthStats = asyncHandler(async (req, res, next) => {
+// إحصائيات
+export const getStats = asyncHandler(async (req, res, next) => {
     const { startDate, endDate } = req.query;
 
-    let matchQuery = {};
+    let query = {};
     if (startDate || endDate) {
-        matchQuery.report_date = {};
-        if (startDate) matchQuery.report_date.$gte = new Date(startDate);
-        if (endDate) matchQuery.report_date.$lte = new Date(endDate);
+        query.date = {};
+        if (startDate) query.date.$gte = new Date(startDate);
+        if (endDate) query.date.$lte = new Date(endDate);
     }
 
-    const stats = await HorseHealthReport.aggregate([
-        { $match: matchQuery },
-        {
-            $group: {
-                _id: null,
-                totalClients: { $addToSet: '$client' },
-                totalReports: { $sum: 1 },
-                totalHorses: { $sum: '$total_horses' }
-            }
-        },
-        {
-            $project: {
-                _id: 0,
-                totalClients: { $size: '$totalClients' },
-                totalReports: 1,
-                totalHorses: 1
-            }
-        }
-    ]);
-
-    res.status(200).json({
-        success: true,
-        data: stats[0] || { totalClients: 0, totalReports: 0, totalHorses: 0 }
-    });
-});
-
-// تقرير شامل لجميع الخدمات (إجمالي)
-export const getComprehensiveReport = asyncHandler(async (req, res, next) => {
-    const { startDate, endDate } = req.query;
-
-    let matchQuery = {};
-    if (startDate || endDate) {
-        matchQuery.report_date = {};
-        if (startDate) matchQuery.report_date.$gte = new Date(startDate);
-        if (endDate) matchQuery.report_date.$lte = new Date(endDate);
-    }
-
-    const reports = await HorseHealthReport.find(matchQuery)
-        .populate('service_request')
-        .populate('client')
-        .populate({
-            path: 'team',
-            populate: { path: 'supervisor department' }
-        })
-        .sort({ report_date: -1 });
-
-    // تجميع البيانات من جميع أنواع الخدمات
-    const summary = {
-        totalReports: reports.length,
-        totalHorses: reports.reduce((sum, r) => sum + (r.total_horses || 0), 0),
-        byHealthCheckType: {},
-        byHealthStatus: {}
-    };
-
-    reports.forEach(report => {
-        // حسب نوع الفحص
-        if (report.health_check_type) {
-            summary.byHealthCheckType[report.health_check_type] = 
-                (summary.byHealthCheckType[report.health_check_type] || 0) + 1;
-        }
-        // حسب الحالة الصحية
-        if (report.health_status) {
-            summary.byHealthStatus[report.health_status] = 
-                (summary.byHealthStatus[report.health_status] || 0) + 1;
-        }
-    });
+    const totalReports = await HorseHealthReport.countDocuments(query);
 
     res.status(200).json({
         success: true,
         data: {
-            reports,
-            summary
+            totalReports
         }
     });
 });

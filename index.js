@@ -9,7 +9,6 @@ import { globalResponse } from "./src/utilities/errorHandeling.js";
 
 // Import Routes
 import clientRouter from "./src/modules/client/client.route.js";
-import teamRouter from "./src/modules/team/team.route.js";
 import parasiteControlRouter from "./src/modules/parasiteControl/parasiteControl.route.js";
 import vaccinationRouter from "./src/modules/vaccination/vaccination.route.js";
 import treatmentRouter from "./src/modules/treatment/treatment.route.js";
@@ -30,7 +29,6 @@ dbConnection
 
 // Routes
 app.use('/clients', clientRouter);
-app.use('/teams', teamRouter);
 app.use('/parasite-control', parasiteControlRouter);
 app.use('/vaccination', vaccinationRouter);
 app.use('/treatment', treatmentRouter);

@@ -4,13 +4,12 @@ import { isAuth } from "../../middleware/isAuth.js";
 
 const router = Router();
 
-router.post('/create', isAuth, horseHealthController.createHorseHealthReport);
-router.get('/', isAuth, horseHealthController.getAllHorseHealthReports);
-router.get('/stats', isAuth, horseHealthController.getHorseHealthStats);
-router.get('/comprehensive', isAuth, horseHealthController.getComprehensiveReport);
-router.get('/filter', isAuth, horseHealthController.filterHorseHealthReports);
-router.get('/:reportId', isAuth, horseHealthController.getHorseHealthReportById);
-router.put('/:reportId', isAuth, horseHealthController.updateHorseHealthReport);
-router.delete('/:reportId', isAuth, horseHealthController.deleteHorseHealthReport);
+router.post('/create', isAuth, horseHealthController.createReport);
+router.get('/', isAuth, horseHealthController.getAllReports);
+router.get('/stats', isAuth, horseHealthController.getStats);
+router.get('/filter', isAuth, horseHealthController.filterReports);
+router.get('/:reportId', isAuth, horseHealthController.getReportById);
+router.put('/:reportId', isAuth, horseHealthController.updateReport);
+router.delete('/:reportId', isAuth, horseHealthController.deleteReport);
 
 export default router;
