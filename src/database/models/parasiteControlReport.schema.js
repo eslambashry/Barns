@@ -82,7 +82,7 @@ const parasiteControlReportSchema = new Schema({
             "Khusluf",
             "Daf Rahal",
             "Sirar",
-            "UmALmkhabeel",
+            "UmALmkhabeel", 
             "Alkiwaira",
             "Thowra",
             "Thri Valley",
@@ -156,3 +156,5 @@ const parasiteControlReportSchema = new Schema({
 }, { timestamps: true });
 
 export const ParasiteControlReport = model('ParasiteControlReport', parasiteControlReportSchema);
+
+
