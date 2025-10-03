@@ -30,7 +30,64 @@ const parasiteControlReportSchema = new Schema({
     // Location
     herd_location: {
         type: String,
-        required: true
+        required: true,
+        enum:[
+            "Wagir",
+            "Khishaiba",
+            "Mughaira",
+            "Arar",
+            "Um-Shiqooq",
+            "Alain",
+            "Al-Jadida",
+            "Kitaifa",
+            "Masadir",
+            "Alain Aljadida",
+            "Alqisaib Alawaj",
+            "Almarma",
+            "AlUla",
+            "Gragir",
+            "Al-Othaib",
+            "Ishar Valley",
+            "Rum",
+            "Gaa' Alhaj",
+            "Al-Mutadil",
+            "Hasat Aldab",
+            "Daa'",
+            "Amool Valley",
+            "Al-Biraika",
+            "Al-Hijr",
+            "Al-Mazham",
+            "Al-Malsan",
+            "Thirba",
+            "Asayel Yard",
+            "Shilal",
+            "Irda",
+            "Shiraa'n",
+            "Sweir",
+            "Fadhla",
+            "Garm",
+            "Gisaib Abu syal",
+            "AlFarsh",
+            "Alfilqa",
+            "Al-Nijail",
+            "Halawa",
+            "Aldirs",
+            "Almagrah Alabyad",
+            "Almagrah Akasmar",
+            "Alwafd",
+            "Balata",
+            "Bir Alarak",
+            "Jaida",
+            "Alward",
+            "Khusluf",
+            "Daf Rahal",
+            "Sirar",
+            "UmALmkhabeel", 
+            "Alkiwaira",
+            "Thowra",
+            "Thri Valley",
+            "Alsatih"
+        ]
     },
     coordinate_e: {
         type: Number
@@ -99,3 +156,5 @@ const parasiteControlReportSchema = new Schema({
 }, { timestamps: true });
 
 export const ParasiteControlReport = model('ParasiteControlReport', parasiteControlReportSchema);
+
+
