@@ -3,13 +3,15 @@ import { Schema, model } from "mongoose";
 const userSchema = new Schema({
     name: {
         type: String,
-        required: true
+        required: true,
+        trim: true
     },
     email: {
         type: String,
         required: true,
         unique: true,
-        lowercase: true
+        lowercase: true,
+        trim: true
     },
     password: {
         type: String,
@@ -17,8 +19,14 @@ const userSchema = new Schema({
     },
     role: {
         type: Schema.Types.ObjectId,
-        ref: 'Role', // ربط بمخطط الصلاحيات
+        ref: 'Role',
         required: true
+    },
+    passwordResetToken: {
+        type: String
+    },
+    passwordResetExpires: {
+        type: Date
     }
 }, { timestamps: true });
 

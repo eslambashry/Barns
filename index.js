@@ -14,6 +14,7 @@ import vaccinationRouter from "./src/modules/vaccination/vaccination.route.js";
 import treatmentRouter from "./src/modules/treatment/treatment.route.js";
 import labRouter from "./src/modules/lab/lab.route.js";
 import horseHealthRouter from "./src/modules/horseHealth/horseHealth.route.js";
+import authRouter from "./src/modules/auth/auth.route.js";
 
 config({path: path.resolve('./config/.env')})
 const app = express();
@@ -23,14 +24,13 @@ app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
 
-// Database Connection
-dbConnection();
-
 // Routes
+app.use('/auth', authRouter);
 app.use('/clients', clientRouter);
 app.use('/parasite-control', parasiteControlRouter);
 app.use('/vaccination', vaccinationRouter);
 app.use('/treatment', treatmentRouter);
+app.use('/lab', labRouter);
 app.use('/horse-health', horseHealthRouter);
 
 app.get("/", (req, res) => res.send("Barns Management System API"));
@@ -38,4 +38,15 @@ app.get("/", (req, res) => res.send("Barns Management System API"));
 // Global error handler - must be after all routes
 app.use(globalResponse);
 
-app.listen(port, () => console.log(`🥟 app port is `.yellow +  ` ${port} 🦅`.blue.underline)); 
+// Database Connection and Server Start
+const startServer = async () => {
+  try {
+    await dbConnection();
+    app.listen(port, () => console.log(`   app port is `.yellow +  ` ${port}   `.blue.underline));
+  } catch (error) {
+    console.error('Failed to start server:'.bgRed, error);
+    process.exit(1);
+  }
+};
+
+startServer();

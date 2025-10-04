@@ -1,4 +1,4 @@
-import { User } from '../database/models/user.schema.js';
+import { User } from '../database/models/user.model.js';
 import { Role } from '../database/models/role.schema.js';
 
 // Middleware للتحقق من صلاحيات المشرف للقسم المحدد
