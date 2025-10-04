@@ -1,15 +1,14 @@
 import { Router } from "express";
 import * as treatmentController from "./treatment.controller.js";
-import { isAuth } from "../../middleware/isAuth.js";
 
 const router = Router();
 
-router.post('/create', isAuth, treatmentController.createReport);
-router.get('/', isAuth, treatmentController.getAllReports);
-router.get('/stats', isAuth, treatmentController.getStats);
-router.get('/filter', isAuth, treatmentController.filterReports);
-router.get('/:reportId', isAuth, treatmentController.getReportById);
-router.put('/:reportId', isAuth, treatmentController.updateReport);
-router.delete('/:reportId', isAuth, treatmentController.deleteReport);
+router.post('/create', treatmentController.createReport);
+router.get('/', treatmentController.getAllReports);
+router.get('/stats', treatmentController.getStats);
+router.get('/filter', treatmentController.filterReports);
+router.get('/:reportId', treatmentController.getReportById);
+router.put('/:reportId', treatmentController.updateReport);
+router.delete('/:reportId', treatmentController.deleteReport);
 
 export default router;
